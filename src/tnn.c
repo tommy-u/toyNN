@@ -11,12 +11,13 @@ https://github.com/mnielsen/neural-networks-and-deep-learning.
 #include <math.h>
 
 typedef unsigned int uint;
+
 typedef struct {
   uint num_layers;
   /* Num neurons in each layer */
   uint *layers;
 
-  /* Jagged 2d array containing bias values */
+  /* Jagged 2d array containing bias values. Not needed for first layer. */
   double **biases;
 
   /* List of num_layers -1 many 2d rectangular arrays of connections
@@ -25,7 +26,7 @@ typedef struct {
   double ***connections;
 } Net;
 
-Net * init_net(uint num_layers, uint *layers){
+Net * tnn_init_net(uint num_layers, uint *layers){
   /* Creates Net struct. Assumes fully connected. */
   uint i;
   double **biases;
@@ -37,9 +38,10 @@ Net * init_net(uint num_layers, uint *layers){
     printf("allocation of biases in init_net failed \n");
     exit(1);
   }  
-
-  for(i=0; i<num_layers; i++){
-    biases[i] = malloc( layers[i] * sizeof(double));
+  
+  /* Skip input layer. */
+  for(i=0; i<num_layers-1; i++){
+    biases[i] = malloc( layers[i+1] * sizeof(double));
     if(biases[i] == NULL){
       printf("allocation of biases[%u] in init_net failed \n",i);
       exit(1);
@@ -80,7 +82,9 @@ Net * init_net(uint num_layers, uint *layers){
   return n;
 }
 
-void destroy_net(Net *n){
+
+
+void tnn_destroy_net(Net *n){
   /* Properly free all heap  memory. */
   uint i;
 
@@ -101,16 +105,25 @@ void destroy_net(Net *n){
   free(n);
 }
 
+double tnn_sigmoid(double z){
+  return 1 / ( 1 + exp( -1 * z ) );
+ }
+
+double tnn_sigmoid_prime(double z){
+  return tnn_sigmoid(z) * (1 - tnn_sigmoid(z));
+}
+
 int main(){
   uint a[3]= {2, 3, 1};
-  Net *n = init_net(3, a); 
+  Net *n = tnn_init_net(3, a); 
 
   /* test */ 
   printf("%u is first connection \n", n->num_layers);
   uint i; 
   for(i=0; i<n->num_layers; i++)
     printf("%u \n",n->layers[i]);
+  printf("%f sig \n",tnn_sigmoid(1));
 
-  destroy_net(n);
+  tnn_destroy_net(n);
   return 0;
 }
