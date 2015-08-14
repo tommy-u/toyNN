@@ -98,6 +98,7 @@ void destroy_net(Net *n){
     free(n->connections[i]);
   }
   free(n->connections);
+  free(n);
 }
 
 int main(){
