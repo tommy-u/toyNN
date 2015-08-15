@@ -9,7 +9,7 @@ https://github.com/mnielsen/neural-networks-and-deep-learning.
 #include <string.h>
 #include <time.h>
 #include <math.h>
-
+#include <random.h>
 typedef unsigned int uint;
 
 typedef struct {
@@ -205,6 +205,19 @@ void tnn_print_net(Net *n){
   printf("----------------------------------------------\n");
 }
 
+void tnn_init_connections(n){
+  uint i;
+  for(i=0;i<n->num_layers-1;i++){
+    uint j;
+    for(j=0;j<n->layers[i+1];j++){
+      uint k;
+      for(k=0;k<n->layers[i];k++){
+        n->connections[i][j][k] =-1;
+      }
+    }
+  }
+}
+
 int main(){
   uint a[3]= {2, 3, 1};
   double in[2] = {1, 1};
@@ -221,6 +234,8 @@ int main(){
       }
     }
   }
+  
+  
   
   for(i=0;i<n->num_layers-1;i++){
     uint j;

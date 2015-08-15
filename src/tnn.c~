@@ -160,51 +160,6 @@ double * tnn_feedforward(Net *n, double *input){
   return current; 
 }
 
-void tnn_print_net(Net *n){
-  
-  printf("----------------------------------------------\n");
-  
-  printf("layer counts in->out: ");
-  uint i;
-  for(i=0;i<n->num_layers;i++){
-    printf("%u",n->layers[i]);
-    if (i!=n->num_layers-1)
-      printf(" - ");
-  }
-  
-  printf("\n");
-  
-  printf("\nBIAS, values starting with first hidden layer -> output\n");
-  for(i=0;i<n->num_layers-1;i++){
-    if (i!=0)
-      printf("\n");
-
-    printf("layer %u:\n",i+1);
-    uint j;
-    for(j=0;j<n->layers[i+1];j++){
-      printf("n: %u \t v: %.3f \n",j,n->biases[i][j]);
-    }
-  }
-  
-  printf("\nCONNECTIONS, count on incoming connection. \n");
-  for(i=0;i<n->num_layers-1;i++){
-    if (i!=0)
-      printf("\n");
-
-    printf("layer %u:\n",i+1);
-
-    uint j;
-    for(j=0;j<n->layers[i+1];j++){
-      uint k=0;
-      for(k=0;k<n->layers[i];k++){
-	printf("o: %u i: %u\t%.3f\n",j,k,n->connections[i][j][k]);
-      }
-    }
-  }
-
-  printf("----------------------------------------------\n");
-}
-
 int main(){
   uint a[3]= {2, 3, 1};
   double in[2] = {1, 1};
@@ -217,7 +172,7 @@ int main(){
     for(j=0;j<n->layers[i+1];j++){
       uint k;
       for(k=0;k<n->layers[i];k++){
-	n->connections[i][j][k] =-1;
+	n->connections[i][j][k] =1;
       }
     }
   }
@@ -234,9 +189,11 @@ int main(){
   for(i=0;i<n->layers[n->num_layers-1]; i++)
     printf("%.3f \n",out[i]);
   
-  printf("%f ", tnn_sigmoid( -3 * tnn_sigmoid(-2)  ));
 
-  //  tnn_print_net(n);
+  printf("sigmoid \n");
+  printf("%f \n", tnn_sigmoid(3 * sigmoid(2));
+
+  
   free(out);
   tnn_destroy_net(n);
   printf("exiting gracefully \n");
