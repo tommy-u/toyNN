@@ -9,6 +9,21 @@ https://github.com/mnielsen/neural-networks-and-deep-learning.
 #include <string.h>
 #include <time.h>
 #include <math.h>
+double tnn_rand_norm(const double mean, const double std)
+{
+  double u, v, s;
+  do
+    {
+      u = (rand() / ((double) RAND_MAX)) * 2.0 - 1.0;
+      v = (rand() / ((double) RAND_MAX)) * 2.0 - 1.0;
+      s = u * u + v * v;
+    }
+  while( (s >= 1.0) || (s == 0.0) );
+
+  s = sqrt(-2.0 * log(s) / s);
+  return mean + std * u * s;
+}
+
 
 typedef unsigned int uint;
 
@@ -25,6 +40,31 @@ typedef struct {
      iterates over the neurons in layer l-1. */
   double ***connections;
 } Net;
+
+void tnn_init_connections(Net *n){
+  
+  uint i;
+  for(i=0;i<n->num_layers-1;i++){
+    uint j;
+    for(j=0;j<n->layers[i+1];j++){
+      uint k;
+      for(k=0;k<n->layers[i];k++){
+        n->connections[i][j][k] = tnn_rand_norm(0,1);
+      }
+    }
+  }
+}
+
+void tnn_init_biases(Net *n){
+  uint i;
+  for(i=0;i<n->num_layers-1;i++){
+    uint j;
+    for(j=0;j<n->layers[i+1];j++){
+      n->biases[i][j] = tnn_rand_norm(0,1);
+    }
+  }
+}
+
 
 Net * tnn_init_net(uint num_layers, uint *layers){
   /* Creates Net struct. Assumes fully connected. */
@@ -46,12 +86,6 @@ Net * tnn_init_net(uint num_layers, uint *layers){
       printf("allocation of biases[%u] in init_net failed \n",i);
       exit(1);
     }
-  }
-  //testing                                                         
-  for(i=0; i<num_layers-1; i++){
-  uint j;
-  for(j=0; j<layers[i+1]; j++)
-    biases[i][j] = j;
   }
 
   /* Allocate connections. */
@@ -85,6 +119,13 @@ Net * tnn_init_net(uint num_layers, uint *layers){
   n->layers = layers;
   n->biases = biases;
   n->connections = connections;
+  
+  /* Warm up prg */
+  for(i=0;i<10;i++)
+    rand();
+  tnn_init_connections(n);
+  tnn_init_biases(n);
+
   return n;
 }
 
@@ -205,40 +246,28 @@ void tnn_print_net(Net *n){
   printf("----------------------------------------------\n");
 }
 
+
+void tnn_print_output_activation(Net *n, double *in){
+  double *out = tnn_feedforward(n, in);
+  printf("out vec: \n");
+  uint i;
+  for(i=0;i<n->layers[n->num_layers-1]; i++)
+    printf("%.3f \n",out[i]);
+  free(out);
+}
+
 int main(){
+  srand(time(NULL));
   uint a[3]= {2, 3, 1};
   double in[2] = {1, 1};
   
   Net *n = tnn_init_net(3, a); 
-
-  uint i;
-  for(i=0;i<n->num_layers-1;i++){
-    uint j;
-    for(j=0;j<n->layers[i+1];j++){
-      uint k;
-      for(k=0;k<n->layers[i];k++){
-	n->connections[i][j][k] =-1;
-      }
-    }
-  }
   
-  for(i=0;i<n->num_layers-1;i++){
-    uint j;
-    for(j=0;j<n->layers[i+1];j++){
-      n->biases[i][j] = 0;
-    }
-  }
-  
-  double *out = tnn_feedforward(n, in);
-  printf("out vec: \n");
-  for(i=0;i<n->layers[n->num_layers-1]; i++)
-    printf("%.3f \n",out[i]);
-  
-  printf("%f ", tnn_sigmoid( -3 * tnn_sigmoid(-2)  ));
-
+  //  uint i;
   //  tnn_print_net(n);
-  free(out);
+  //  tnn_print_output_activation(n,in);
+
   tnn_destroy_net(n);
-  printf("exiting gracefully \n");
+  //  printf("exiting gracefully \n");
   return 0;
 }
