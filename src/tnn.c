@@ -106,11 +106,50 @@ void tnn_destroy_net(Net *n){
 }
 
 double tnn_sigmoid(double z){
+  /* Sigmoid Fn */
   return 1 / ( 1 + exp( -1 * z ) );
  }
 
 double tnn_sigmoid_prime(double z){
+  /* Derivative of Sigmoid */
   return tnn_sigmoid(z) * (1 - tnn_sigmoid(z));
+}
+
+double * tnn_feedforward(Net *n, double *input){
+  /* i iterates over layers, j iterates over the output, 
+     k iterates over the input.  */
+  double *previous, *current;
+  previous = input;
+  
+  uint i;
+  /* Loop over connection matrices between layers. */
+  for (i=0; i<n->num_layers-1; i++) {
+
+    /* This will contain the activations. */
+    current = malloc(n->layers[i+1] * sizeof(double) );
+    /* Temporary storage for layer activation. */
+    uint j;
+
+    /* Loop over output neurons (of this layer). */
+    for(j=0; j<n->layers[i+1]; j++){
+      uint k;
+      /* Loop over incoming connection signals. This is the dot 
+	 product of the input vector and the weight matrix. */
+      for(k=0; k<n->layers[i]; k++){
+	current[j] += previous[k] * n->connections[i][j][k];
+      }
+      /* Add the bias term, this is the preactivation.  */
+      current[j] += n->biases[i][j];
+      /* This is the activation of the n->layers[i+1] neurons in
+	 the i+1st layer. */
+      current[j] = tnn_sigmoid(current[j]);
+    }
+    if(i==0)
+      free(previous);
+    previous = current;
+  }
+  //current needs to be freed elsewhere. 
+  return current; 
 }
 
 int main(){
