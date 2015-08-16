@@ -155,7 +155,9 @@ Net * tnn_init_net(uint num_layers, uint *layers){
   Net *n = malloc( sizeof(Net) );
   n->num_layers = num_layers;
   n->layers = layers;
+  n->output = output;
   n->biases = biases;
+  n->pre_activations = pre_activations;
   n->connections = connections;
   
   /* Warm up prg */
