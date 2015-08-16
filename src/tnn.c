@@ -12,8 +12,7 @@ https://github.com/mnielsen/neural-networks-and-deep-learning.
 double tnn_rand_norm(const double mean, const double std)
 {
   double u, v, s;
-  do
-    {
+  do{
       u = (rand() / ((double) RAND_MAX)) * 2.0 - 1.0;
       v = (rand() / ((double) RAND_MAX)) * 2.0 - 1.0;
       s = u * u + v * v;
@@ -53,7 +52,7 @@ double * cost_derivative(Net *n, double *labels, double *output){
     difference cost function */
   double *derivs = calloc(n->layers[n->num_layers-1], sizeof(double));
   uint i;
-  for (i = 0; i < n->layers[n->num_layers-1]; ++i){
+  for (i = 0; i < n->layers[n->num_layers-1]; i++){
     derivs[i] = output[i] - labels[i];
   }
   return derivs;
@@ -118,7 +117,7 @@ Net * tnn_init_net(uint num_layers, uint *layers){
   } 
 
   /* Skip input layer. */
-  for (i = 0; i < num_layers-1; ++i){
+  for (i = 0; i < num_layers-1; i++){
     pre_activations[i] = malloc (layers[i+1] * sizeof(double));
     if (pre_activations[i] == NULL){
       printf("allocation of pre_activations in init_net failed \n");
@@ -209,9 +208,11 @@ double tnn_sigmoid_prime(double z){
   return tnn_sigmoid(z) * (1 - tnn_sigmoid(z));
 }
 
-double * tnn_feedforward(Net *n, double *input){
+double * tnn_feedforward(Net *n, double *input, uint train){
   /* i iterates over layers, j iterates over the output, 
-     k iterates over the input.  */
+     k iterates over the input.  
+     Train is a flag specifying if the pre_activations should
+     be recorded. */
   double *previous, *current;
   previous = input;
   
@@ -233,8 +234,12 @@ double * tnn_feedforward(Net *n, double *input){
       }
       /* Add the bias term, this is the preactivation.  */
       current[j] += n->biases[i][j];
+      
+      if(train)
+        n->pre_activations[i][j] = current[j];
+
       /* This is the activation of the n->layers[i+1] neurons in
-	 the i+1st layer. */
+      	 the i+1st layer. */
       current[j] = tnn_sigmoid(current[j]);
     }
     
@@ -245,7 +250,7 @@ double * tnn_feedforward(Net *n, double *input){
   }
 
   /* Copy current into net's output array. */
-  for (i = 0; i < n->layers[n->num_layers-1]; ++i){
+  for (i = 0; i < n->layers[n->num_layers-1]; i++){
     n->output[i] = current[i];
   }
   free(current);
@@ -300,12 +305,29 @@ void tnn_print_net(Net *n){
 
 
 void tnn_print_output_activation(Net *n, double *in){
-  double *out = tnn_feedforward(n, in);
+  double *out = tnn_feedforward(n, in, 0);
   printf("out vec: \n");
   uint i;
   for(i=0;i<n->layers[n->num_layers-1]; i++)
     printf("%.3f \n",out[i]);
   free(out);
+}
+
+void tnn_print_pre_activations(Net *n){
+  uint i;
+
+  printf("pre_activations:\n");
+  for (i = 0; i < n->num_layers-1; i++){
+    if(i!=0)
+      printf("\n");
+    printf("layer %u\n", i);
+
+    uint j;
+    for (j = 0; j < n->layers[i+1]; j++){
+      printf("l:%u n:%u v: %.3f\n",i,j,n->pre_activations[i][j]);
+    }
+    
+  }
 }
 
 void tnn_backprop(){
@@ -319,10 +341,11 @@ int main(){
   double in[2] = {1, 1};
   Net *n = tnn_init_net(3, a); 
 
-  tnn_feedforward(n, in);
-  uint i;
-  for(i=0;i<n->layers[n->num_layers-1]; i++)
-    printf("%f\n", n->output[i]);
+  tnn_feedforward(n, in, 1);
+
+  tnn_print_pre_activations(n);
+
+  tnn_print_output_activation(n,in);
 
   tnn_destroy_net(n);
   printf("exiting gracefully \n");
