@@ -316,7 +316,7 @@ void tnn_backprop(){
 int main(){
   srand(time(NULL));
   uint a[3]= {2, 3, 1};
-//  double in[2] = {1, 1};
+  //  double in[2] = {1, 1};
   Net *n = tnn_init_net(3, a); 
 
   tnn_destroy_net(n);
