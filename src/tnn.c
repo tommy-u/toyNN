@@ -208,7 +208,7 @@ double tnn_sigmoid_prime(double z){
   return tnn_sigmoid(z) * (1 - tnn_sigmoid(z));
 }
 
-double * tnn_feedforward(Net *n, double *input, uint train){
+void tnn_feedforward(Net *n, double *input, uint train){
   /* i iterates over layers, j iterates over the output, 
      k iterates over the input.  
      Train is a flag specifying if the pre_activations should
@@ -254,9 +254,8 @@ double * tnn_feedforward(Net *n, double *input, uint train){
     n->output[i] = current[i];
   }
   free(current);
-  //current needs to be freed elsewhere. 
-  return current; 
-}
+  
+  }
 
 void tnn_print_net(Net *n){
   
@@ -305,12 +304,11 @@ void tnn_print_net(Net *n){
 
 
 void tnn_print_output_activation(Net *n, double *in){
-  double *out = tnn_feedforward(n, in, 0);
+  tnn_feedforward(n, in, 0);
   printf("out vec: \n");
   uint i;
   for(i=0;i<n->layers[n->num_layers-1]; i++)
-    printf("%.3f \n",out[i]);
-  free(out);
+    printf("%.3f \n",n->output[i]);
 }
 
 void tnn_print_pre_activations(Net *n){
