@@ -24,7 +24,6 @@ double tnn_rand_norm(const double mean, const double std)
   return mean + std * u * s;
 }
 
-
 typedef unsigned int uint;
 
 typedef struct {
@@ -32,14 +31,33 @@ typedef struct {
   /* Num neurons in each layer */
   uint *layers;
 
+  /* Space allocated for the result of running the net */
+  double *output;
+
   /* Jagged 2d array containing bias values. Not needed for first layer. */
   double **biases;
+
+  /* For use in backprop. Store during feed forward. Use to compute 
+    sigma_prime */
+  double **pre_activations;
 
   /* List of num_layers -1 many 2d rectangular arrays of connections
      between layer l and l-1. An inner loop over one of these 2d arrays
      iterates over the neurons in layer l-1. */
   double ***connections;
+
 } Net;
+
+double * cost_derivative(Net *n, double *labels, double *output){
+  /* Partial derivatives for output activation using squared 
+    difference cost function */
+  double *derivs = calloc(n->layers[n->num_layers-1], sizeof(double));
+  uint i;
+  for (i = 0; i < n->layers[n->num_layers-1]; ++i){
+    derivs[i] = output[i] - labels[i];
+  }
+  return derivs;
+}
 
 void tnn_init_connections(Net *n){
   
@@ -65,15 +83,18 @@ void tnn_init_biases(Net *n){
   }
 }
 
-
 Net * tnn_init_net(uint num_layers, uint *layers){
   /* Creates Net struct. Assumes fully connected. */
   uint i;
-  double **biases;
+  double *output;
+  double **biases, **pre_activations;
   double ***connections;
 
+  /* Allocate output array. */
+  output = malloc( layers[num_layers-1] * sizeof(double) );
+
   /* Allocate biases array. */
-  biases = malloc( num_layers * sizeof(double *));
+  biases = malloc( num_layers * sizeof(double *) );
   if(biases == NULL){
     printf("allocation of biases in init_net failed \n");
     exit(1);
@@ -81,11 +102,28 @@ Net * tnn_init_net(uint num_layers, uint *layers){
   
   /* Skip input layer. */
   for(i=0; i<num_layers-1; i++){
-    biases[i] = malloc( layers[i+1] * sizeof(double));
+    biases[i] = malloc( layers[i+1] * sizeof(double) );
     if(biases[i] == NULL){
       printf("allocation of biases[%u] in init_net failed \n",i);
       exit(1);
     }
+  }
+
+  /* Allocate pre_activations array */
+
+  pre_activations = malloc( num_layers * sizeof(double*));
+  if (pre_activations == NULL){
+    printf("allocation of pre_activations in init_net failed \n");
+    exit(1);
+  } 
+
+  /* Skip input layer. */
+  for (int i = 0; i < num_layers-1; ++i){
+    pre_activations[i] = malloc (layers[i+1] * sizeof(double));
+    if (pre_activations[i] == NULL){
+      printf("allocation of pre_activations in init_net failed \n");
+      exit(1);
+    } 
   }
 
   /* Allocate connections. */
@@ -129,16 +167,22 @@ Net * tnn_init_net(uint num_layers, uint *layers){
   return n;
 }
 
-
-
 void tnn_destroy_net(Net *n){
   /* Properly free all heap  memory. */
   uint i;
+
+  /* Free output array. */
+  free(n->output);
 
   /* Free bias values. -1 because none for input. */
   for(i=0; i<n->num_layers-1; i++)
     free(n->biases[i]);
   free(n->biases);
+
+  /* Free pre_activations. */
+  for(i=0; i<n->num_layers-1; i++)
+    free(n->pre_activations[i]);
+  free(n->pre_activations);
 
   /* Free Connections. */
   for(i=0; i<n->num_layers-1; i++){
@@ -197,6 +241,12 @@ double * tnn_feedforward(Net *n, double *input){
 
     previous = current;
   }
+
+  /* Copy current into net's output array. */
+  for (int i = 0; i < n->layers[n->num_layers-1]; ++i){
+    n->output[i] = current[i];
+  }
+  free(current);
   //current needs to be freed elsewhere. 
   return current; 
 }
@@ -256,18 +306,18 @@ void tnn_print_output_activation(Net *n, double *in){
   free(out);
 }
 
+void tnn_backprop(){
+
+}
+
+
 int main(){
   srand(time(NULL));
   uint a[3]= {2, 3, 1};
-  double in[2] = {1, 1};
-  
+//  double in[2] = {1, 1};
   Net *n = tnn_init_net(3, a); 
-  
-  //  uint i;
-  //  tnn_print_net(n);
-  //  tnn_print_output_activation(n,in);
 
   tnn_destroy_net(n);
-  //  printf("exiting gracefully \n");
+  printf("exiting gracefully \n");
   return 0;
 }
