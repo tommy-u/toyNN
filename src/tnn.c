@@ -326,7 +326,7 @@ void tnn_print_pre_activations(Net *n){
 }
 
 void tnn_allocate_error_arrays(Net *n, double **err){
-  err = malloc(n->num_layers-1 * sizeof(double*));
+  err = malloc( (n->num_layers-1) * sizeof(double*));
   if(err==NULL){
     printf("Failed to allocate error array in tnn_allocate_error_arrays\n");
     exit(1);
