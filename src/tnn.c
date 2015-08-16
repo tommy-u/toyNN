@@ -118,7 +118,7 @@ Net * tnn_init_net(uint num_layers, uint *layers){
   } 
 
   /* Skip input layer. */
-  for (int i = 0; i < num_layers-1; ++i){
+  for (i = 0; i < num_layers-1; ++i){
     pre_activations[i] = malloc (layers[i+1] * sizeof(double));
     if (pre_activations[i] == NULL){
       printf("allocation of pre_activations in init_net failed \n");
@@ -243,7 +243,7 @@ double * tnn_feedforward(Net *n, double *input){
   }
 
   /* Copy current into net's output array. */
-  for (int i = 0; i < n->layers[n->num_layers-1]; ++i){
+  for (i = 0; i < n->layers[n->num_layers-1]; ++i){
     n->output[i] = current[i];
   }
   free(current);
