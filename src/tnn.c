@@ -219,7 +219,7 @@ double * tnn_feedforward(Net *n, double *input){
   /* Loop over connection matrices between layers. */
   for (i=0; i<n->num_layers-1; i++) {
     /* This will contain the activations. */
-    current = malloc(n->layers[i+1] * sizeof(double) );
+    current = calloc(n->layers[i+1], sizeof(double) );
     /* Temporary storage for layer activation. */
     uint j;
 
