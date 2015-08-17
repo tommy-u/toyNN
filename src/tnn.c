@@ -382,7 +382,7 @@ void tnn_update_biases(Net *n, double **err, double lrate){
   /* The derivative of the cost with respect to the bias is 
      simply the error term per our definition. */
   uint i;
-  for(i=0;i<n->num_layers-2;i++){ //loop over layers
+  for(i=0;i<n->num_layers-1;i++){ //loop over layers
     uint j;
     for(j=0;j<n->layers[i];j++){ //loop over current layer neurons
       n->biases[i][j] -= lrate * err[i][j];
@@ -394,7 +394,7 @@ void tnn_update_connections(Net *n, double **err, double *in, double lrate){
   /* The derivative of the cost with respect to the connections
      is simply the error times the activation. */
   uint i;
-  for(i=0;i<n->num_layers-2;i++){ //loop over layers                   
+  for(i=0;i<n->num_layers-1;i++){ //loop over layers                   
     uint j;
     for(j=0;j<n->layers[i+1];j++){ //loop over next layer neurons      
       uint k;
@@ -467,18 +467,18 @@ int main(){
   
   printf("\nTRAIN\n");
   uint i;
-  for(i=0;i<1000000;i++){
+  for(i=0;i<1000;i++){
     in[0]=0;in[1]=0; label[0]=0;label[1]=0;
-    tnn_backprop(n, in, label, 10.7);
+    tnn_backprop(n, in, label, .01);
 
     in[0]=1;in[1]=0; label[0]=1;label[1]=0;
-    tnn_backprop(n, in, label, 10.7);
+    tnn_backprop(n, in, label, .01);
 
     in[0]=0;in[1]=1; label[0]=0;label[1]=1;
-    tnn_backprop(n, in, label, 10.7);
+    tnn_backprop(n, in, label, .01);
 
     in[0]=1;in[1]=1; label[0]=1;label[1]=1;
-    tnn_backprop(n, in, label, 10.7);
+    tnn_backprop(n, in, label, .01);
   }
 
   printf("\nTEST\n");
