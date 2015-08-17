@@ -467,18 +467,18 @@ int main(){
   
   printf("\nTRAIN\n");
   uint i;
-  for(i=0;i<100;i++){
+  for(i=0;i<1000000;i++){
     in[0]=0;in[1]=0; label[0]=0;label[1]=0;
-    tnn_backprop(n, in, label, .1);
+    tnn_backprop(n, in, label, 10.7);
 
     in[0]=1;in[1]=0; label[0]=1;label[1]=0;
-    tnn_backprop(n, in, label, .1);
+    tnn_backprop(n, in, label, 10.7);
 
     in[0]=0;in[1]=1; label[0]=0;label[1]=1;
-    tnn_backprop(n, in, label, .1);
+    tnn_backprop(n, in, label, 10.7);
 
     in[0]=1;in[1]=1; label[0]=1;label[1]=1;
-    tnn_backprop(n, in, label, .1);
+    tnn_backprop(n, in, label, 10.7);
   }
 
   printf("\nTEST\n");
