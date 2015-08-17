@@ -362,14 +362,18 @@ void tnn_generate_error(Net *n, double *labels, double **err){
     uint j;
     if(i==n->num_layers-2){
       tnn_cost_derivative(n,labels,err); //Output Layer
+
+      printf("hi\n");
     }else {
       for(j=0; j<n->layers[i+1]; j++){ //Nodes of layer i
 	uint k;
 	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
+	  //	  printf("err[%u][%u] = conn[%u][%u][%u] * err[%u][%u]\n",i,j,i,j,k,i+1,k);
+	  //printf(" = %f * %f\n",n->connections[i][j][k],err[i+1][k]);
 	  err[i][j] = n->connections[i][j][k] * err[i+1][k];
 	}
       }
-    }
+  }
     /* Multiply by sigmoid_prime to finish error calculation. */
     for(j=0;j<n->layers[i+1]; j++){
       err[i][j] *= tnn_sigmoid_prime(n->pre_activations[i][j]);
@@ -386,7 +390,8 @@ void tnn_update_biases(Net *n, double **err, double lrate){
     for(j=0;j<n->layers[i+1];j++){ //loop over current layer neurons
       n->biases[i][j] -= lrate * err[i][j];
       
-      //      printf("%f\n",err[i][j]);
+      printf("biases[%u][%u] -= lrate * err[%u][%u]\n",i,j,i,j);
+      printf(" -= %f * %f \n",lrate,err[i][j]);
     }
   }
 }
@@ -402,9 +407,9 @@ void tnn_update_connections(Net *n, double **err, double *in, double lrate){
       for(k=0;k<n->layers[i];k++){ //current layer neurons
 	/* Consider building input vector into pre_activations */
 	if(i==0)
-	  n->connections[i][j][k] -= lrate * err[i][j] *  in[i]; 
+	  n->connections[i][j][k] -= lrate * err[i][j] * in[i]; 
 	else
-	  n->connections[i][j][k] -= lrate * err[i][j] *  n->pre_activations[i][j];
+	  n->connections[i][j][k] -= lrate * err[i][j] * tnn_sigmoid( n->pre_activations[i][j] );
       } 
     }
   }
@@ -427,9 +432,10 @@ void tnn_backprop(Net *n, double *in, double *labels, double lrate){
 
   /* Train the model. */
   tnn_update_net_parameters(n,err,in, lrate);
+  
+  printf("err[0][0]=%f\n",err[0][1]);
 
   uint i;
-
   for(i=0; i<n->num_layers-1; i++)
     free(err[i]);
   free(err);
@@ -438,9 +444,8 @@ void tnn_backprop(Net *n, double *in, double *labels, double lrate){
 }
 
 int main(){
-  //  srand(time(NULL));
   srand(5);
-  uint a[3]= {2, 3, 1};
+  uint a[3]= {2, 2, 1};
   Net *n = tnn_init_net(3, a); 
 
   //Let's learn the copy function
@@ -448,10 +453,22 @@ int main(){
   double in[2];
   double label[1];
 
+  uint i;
+  for(i=0;i<n->num_layers-1;i++){
+    uint j;
+    for(j=0;j<n->layers[i+1];j++){
+      n->biases[i][j]=0;
+      uint k;
+      for(k=0;k<n->layers[i];k++){
+	n->connections[i][j][k]=1;
+      }
+    }
+    
+  }
   tnn_print_net(n);
 
   /* XOR fn before training. */
-  uint i;
+  
   for(i=0;i<2;i++){
     uint j;
     for(j=0;j<2;j++){
@@ -463,17 +480,18 @@ int main(){
 
   printf("\nTRAIN\n");
   
-  for(i=0;i<100;i++){
+  for(i=0;i<1;i++){
     uint j;
-    for(j=0;j<2;j++){
+    for(j=0;j<1;j++){ //only running 1 time
       uint j;
-      for(j=0;j<2;j++){
-	in[0]=i;in[1]=j; label[0]=i^j;
-	tnn_backprop(n, in, label, .001);
+      for(j=0;j<1;j++){
+	in[0]=1;in[1]=1; label[0]=0;
+	tnn_backprop(n, in, label, .1);
+	printf("train\n");
       }
     }
   }
-  
+    
   printf("\nTEST\n");
 
   for(i=0;i<2;i++){
