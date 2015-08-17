@@ -54,8 +54,7 @@ typedef struct {
      C = 1/2 (a - y)^2. 
      */
     uint i;
-    /* Had an off by 1 bug here. If there are 3 layers, output error layer is 1. */
-    for (i = 0; i < n->layers[n->num_layers-2]; i++){
+    for (i = 0; i < n->layers[n->num_layers-1]; i++){
       err[n->num_layers-2][i] = n->output[i] - labels[i]; //change this to y-a? 
     }
    }
@@ -367,7 +366,7 @@ void tnn_generate_error(Net *n, double *labels, double **err){
       for(j=0; j<n->layers[i+1]; j++){ //Nodes of layer i
 	uint k;
 	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
-	  err[i][j] = n->connections[i][k][j] * err[i+1][k];
+	  err[i][j] = n->connections[i][j][k] * err[i][j];
 	}
       }
     }
@@ -384,8 +383,9 @@ void tnn_update_biases(Net *n, double **err, double lrate){
   uint i;
   for(i=0;i<n->num_layers-1;i++){ //loop over layers
     uint j;
-    for(j=0;j<n->layers[i];j++){ //loop over current layer neurons
+    for(j=0;j<n->layers[i+1];j++){ //loop over current layer neurons
       n->biases[i][j] -= lrate * err[i][j];
+      printf("%f\n",err[i][j]);
     }
   }
 }
@@ -438,17 +438,68 @@ void tnn_backprop(Net *n, double *in, double *labels, double lrate){
 
 int main(){
   //  srand(time(NULL));
-  srand(0);
-  uint a[3]= {2, 2, 2};
+  srand(5);
+  uint a[3]= {2, 3, 1};
   Net *n = tnn_init_net(3, a); 
 
   //Let's learn the copy function
   //printf("before training \n");
   double in[2];
-  double label[2];
+  double label[1];
 
   tnn_print_net(n);
+  
+  in[0]=0;in[1]=0; label[0]=0;
+  printf("\n0\n0\n");
+  tnn_print_output_activation(n,in);
 
+  in[0]=1;in[1]=0; label[0]=1;
+  printf("\n1\n0\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=0;in[1]=1; label[0]=1;
+  printf("\n0\n1\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=1;in[1]=1; label[0]=0;
+  printf("\n1\n1\n");
+  tnn_print_output_activation(n,in);
+
+  printf("\nTRAIN\n");
+  uint i;
+  for(i=0;i<100000;i++){
+    in[0]=0;in[1]=0; label[0]=0;
+    tnn_backprop(n, in, label, .001);
+
+    in[0]=1;in[1]=0; label[0]=1;
+    tnn_backprop(n, in, label, .001);
+
+    in[0]=0;in[1]=1; label[0]=0;
+    tnn_backprop(n, in, label, .001);
+
+    in[0]=1;in[1]=1; label[0]=0;
+    tnn_backprop(n, in, label, .001);
+  }
+
+  printf("\nTEST\n");
+
+  in[0]=0;in[1]=0; label[0]=0;
+  printf("\n0\n0\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=1;in[1]=0; label[0]=1;
+  printf("\n1\n0\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=0;in[1]=1; label[0]=1;
+  printf("\n0\n1\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=1;in[1]=1; label[0]=0;
+  printf("\n1\n1\n");
+  tnn_print_output_activation(n,in);  
+
+/*
   in[0]=0;in[1]=0; label[0]=0;label[1]=0;
   printf("\n0\n0\n");  
   tnn_print_output_activation(n,in);
@@ -498,6 +549,7 @@ int main(){
   in[0]=1;in[1]=1; label[0]=1;label[1]=1;
   printf("\n1\n1\n");
   tnn_print_output_activation(n,in);
+*/
 
   tnn_print_net(n);
   tnn_destroy_net(n);
