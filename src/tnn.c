@@ -27,6 +27,7 @@ typedef unsigned int uint;
 
 typedef struct {
   uint num_layers;
+
   /* Num neurons in each layer */
   uint *layers;
 
@@ -350,9 +351,9 @@ double ** tnn_allocate_error_arrays(Net *n){
 
 void tnn_generate_error(Net *n, double *labels, double **err){
   /* Start at output layer, work way back toward input. */
-  uint i;  
+  int i;  
   
-  for(i=n->num_layers-2; i>1; i--){ //change this to i>0 when done debug
+  for(i=n->num_layers-2; i>=0; i--){
     /* 
        This calculates derivative of cost fn with respect to activation, then multiplies
        by derivitive of the activation with respect to the pre_activation per the chain 
@@ -363,16 +364,16 @@ void tnn_generate_error(Net *n, double *labels, double **err){
     if(i==n->num_layers-2){
       tnn_cost_derivative(n,labels,err); //Output Layer
     }else {
-      for(j=0; j<n->layers[i]; j++){ //Nodes of layer i
+      for(j=0; j<n->layers[i+1]; j++){ //Nodes of layer i
 	uint k;
-	for(k=0; k<n->layers[i+1]; k++){ //Nodes of layer i+1
+	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
 	  err[i][j] = n->connections[i][k][j] * err[i+1][k];
 	}
       }
     }
     /* Multiply by sigmoid_prime to finish error calculation. */
-    for(j=0;j<n->layers[i]; j++){
-      err[i][j] *= tnn_sigmoid_prime(n->pre_activations[i-1][j]);
+    for(j=0;j<n->layers[i+1]; j++){
+      err[i][j] *= tnn_sigmoid_prime(n->pre_activations[i][j]);
     }
   }
 }
@@ -443,35 +444,62 @@ int main(){
 
   //Let's learn the copy function
   //printf("before training \n");
+  double in[2];
+  double label[2];
 
-  double in[2] = {0, 0};
-  /*
-  printf("0 0\n");  
+  tnn_print_net(n);
+
+  in[0]=0;in[1]=0; label[0]=0;label[1]=0;
+  printf("\n0\n0\n");  
   tnn_print_output_activation(n,in);
   
-  in[0] = 1;
-  printf("0 1\n");
+  in[0]=1;in[1]=0; label[0]=1;label[1]=0;
+  printf("\n1\n0\n");
   tnn_print_output_activation(n,in);  
-
-  in[0] = 0;
-  in[1] = 1;
-  printf("1 0\n");
-  tnn_print_output_activation(n,in);
-
-  in[0] = 1;
-  printf("1 1\n");
-  tnn_print_output_activation(n,in);
-  */
-  double label[2] = {0, 0};
-  in[0]=0; in[1]=0;
-
-  tnn_print_output_activation(n,in);
-
-  tnn_backprop(n, in, label, .1);
   
-
+  in[0]=0;in[1]=1; label[0]=0;label[1]=1;
+  printf("\n0\n1\n");
   tnn_print_output_activation(n,in);
   
+  in[0]=1;in[1]=1; label[0]=1;label[1]=1;
+  printf("\n1\n1\n");
+  tnn_print_output_activation(n,in);
+  
+  printf("\nTRAIN\n");
+  uint i;
+  for(i=0;i<100;i++){
+    in[0]=0;in[1]=0; label[0]=0;label[1]=0;
+    tnn_backprop(n, in, label, .1);
+
+    in[0]=1;in[1]=0; label[0]=1;label[1]=0;
+    tnn_backprop(n, in, label, .1);
+
+    in[0]=0;in[1]=1; label[0]=0;label[1]=1;
+    tnn_backprop(n, in, label, .1);
+
+    in[0]=1;in[1]=1; label[0]=1;label[1]=1;
+    tnn_backprop(n, in, label, .1);
+  }
+
+  printf("\nTEST\n");
+  
+  in[0]=0;in[1]=0; label[0]=0;label[1]=0;
+  printf("\n0\n0\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=1;in[1]=0; label[0]=1;label[1]=0;
+  printf("\n1\n0\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=0;in[1]=1; label[0]=0;label[1]=1;
+  printf("\n0\n1\n");
+  tnn_print_output_activation(n,in);
+
+  in[0]=1;in[1]=1; label[0]=1;label[1]=1;
+  printf("\n1\n1\n");
+  tnn_print_output_activation(n,in);
+
+  tnn_print_net(n);
   tnn_destroy_net(n);
   printf("exiting gracefully \n");
   return 0;
