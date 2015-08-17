@@ -367,8 +367,6 @@ void tnn_generate_error(Net *n, double *labels, double **err){
 	uint k;
 	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
 	  err[i][j] = n->connections[i][j][k] * err[i+1][k];
-	  //	  printf("err[%u][%u] = %f\n",i+1,j,err[i+1][k]);
-	  //	  getchar();
 	}
       }
     }
@@ -465,9 +463,9 @@ int main(){
 
   printf("\nTRAIN\n");
   
-  for(i=0;i<100000;i++){
-    
-    for(i=0;i<2;i++){
+  for(i=0;i<100;i++){
+    uint j;
+    for(j=0;j<2;j++){
       uint j;
       for(j=0;j<2;j++){
 	in[0]=i;in[1]=j; label[0]=i^j;
