@@ -47,16 +47,19 @@ typedef struct {
 
    } Net;
 
-   void tnn_cost_derivative(Net *n, double *labels, double *err){
-  /* Partial derivatives for output activation using squared 
-     difference cost function */
+   void tnn_cost_derivative(Net *n, double *labels, double **err){
+     /* 
+     Partial derivatives for output activation using squared difference cost function: 
+     C = 1/2 (a - y)^2. 
+     */
     uint i;
-    for (i = 0; i < n->layers[n->num_layers-1]; i++){
-      err[i] = n->output[i] - labels[i];
+    /* Had an off by 1 bug here. If there are 3 layers, output error layer is 1. */
+    for (i = 0; i < n->layers[n->num_layers-2]; i++){
+      err[n->num_layers-2][i] = n->output[i] - labels[i]; //change this to y-a? 
     }
-  }
+   }
 
-  void tnn_init_connections(Net *n){
+void tnn_init_connections(Net *n){
 
     uint i;
     for(i=0;i<n->num_layers-1;i++){
@@ -325,75 +328,124 @@ void tnn_print_pre_activations(Net *n){
   }
 }
 
-void tnn_allocate_error_arrays(Net *n, double **err){
-  err = malloc( (n->num_layers-1) * sizeof(double*));
+double ** tnn_allocate_error_arrays(Net *n){
+  /* Allocate pointers to each layer after input. */
+  double **err = malloc( (n->num_layers-1) * sizeof(double*) );
   if(err==NULL){
     printf("Failed to allocate error array in tnn_allocate_error_arrays\n");
     exit(1);
   }
+
+  /* For each layer after the input, allocate doubles for each neuron. */
   uint i;
-  for(i=0; i<n->num_layers-1; i++){
-    printf("allocating err[%u]\n",i);
-    err[i] = calloc(n->layers[i], sizeof(double));
-    if(err[i]==NULL){
+  for(i=0; i < n->num_layers-1; i++){
+    err[i] = calloc( n->layers[i+1], sizeof(double) );
+    if(err[i] == NULL){
       printf("Failed to allocate error[%u] array in tnn_allocate_error_arrays\n",i);
       exit(1);
     }
   }
+  return err;
 }
 
 void tnn_generate_error(Net *n, double *labels, double **err){
   /* Start at output layer, work way back toward input. */
   uint i;  
-  for(i=n->num_layers-1; i>1; i--){
+  
+  for(i=n->num_layers-2; i>1; i--){ //change this to i>0 when done debug
+    /* 
+       This calculates derivative of cost fn with respect to activation, then multiplies
+       by derivitive of the activation with respect to the pre_activation per the chain 
+       rule. There are 2 cases, the base case where we calculate the error of the output 
+       layer, and the repeated case(s) of moving the error through the hidden layers. 
+    */
     uint j;
-    /* Calculate error for each node. */
+    if(i==n->num_layers-2){
+      tnn_cost_derivative(n,labels,err); //Output Layer
+    }else {
+      for(j=0; j<n->layers[i]; j++){ //Nodes of layer i
+	uint k;
+	for(k=0; k<n->layers[i+1]; k++){ //Nodes of layer i+1
+	  err[i][j] = n->connections[i][k][j] * err[i+1][k];
+	}
+      }
+    }
+    /* Multiply by sigmoid_prime to finish error calculation. */
     for(j=0;j<n->layers[i]; j++){
-      //printf("l:%u n:%u %f pre_activations\n",i,j,n->pre_activations[i-1][j]);
-//      printf("error: %f \n",err[j] * tnn_sigmoid_prime(n->pre_activations[i-1][j]));
-//      uint k;
-  //    for(k=0; k<n->layers[i-1]; k++){
-
-    //  }
+      err[i][j] *= tnn_sigmoid_prime(n->pre_activations[i-1][j]);
     }
   }
 }
 
-void tnn_backprop(Net *n, double *in, double *labels){
+void tnn_update_biases(Net *n, double **err, double lrate){
+  /* The derivative of the cost with respect to the bias is 
+     simply the error term per our definition. */
+  uint i;
+  for(i=0;i<n->num_layers-2;i++){ //loop over layers
+    uint j;
+    for(j=0;j<n->layers[i];j++){ //loop over current layer neurons
+      n->biases[i][j] -= lrate * err[i][j];
+    }
+  }
+}
+
+void tnn_update_connections(Net *n, double **err, double *in, double lrate){
+  /* The derivative of the cost with respect to the connections
+     is simply the error times the activation. */
+  uint i;
+  for(i=0;i<n->num_layers-2;i++){ //loop over layers                   
+    uint j;
+    for(j=0;j<n->layers[i+1];j++){ //loop over next layer neurons      
+      uint k;
+      for(k=0;k<n->layers[i];k++){ //current layer neurons
+	/* Consider building input vector into pre_activations */
+	if(i==0)
+	  n->connections[i][j][k] -= lrate * err[i][j] *  in[i]; 
+	else
+	  n->connections[i][j][k] -= lrate * err[i][j] *  n->pre_activations[i][j];
+      } 
+    }
+  }
+}
+
+void tnn_update_net_parameters(Net *n, double **err, double *in, double lrate){
+  tnn_update_biases(n,err,lrate);
+  tnn_update_connections(n,err,in,lrate);
+}
+
+void tnn_backprop(Net *n, double *in, double *labels, double lrate){
   /* Allocate error arrays. */
-  double **err = NULL;
-  tnn_allocate_error_arrays(n,err);
+  double **err = tnn_allocate_error_arrays(n);
 
   /* Acquires output vec as well as pre_activations. */
   tnn_feedforward(n,in,1);
+
   /* Compute error at each node, chain rule. */
-  //tnn_generate_error(n,labels, err);
+  tnn_generate_error(n,labels, err);
 
-  printf("here\n");  
+  /* Train the model. */
+  tnn_update_net_parameters(n,err,in, lrate);
+
   uint i;
-  for(i=0; i<n->num_layers-1; i++){
-    printf("free err[%u]\n",i);
-     free(err[i]);
-  }
 
+  for(i=0; i<n->num_layers-1; i++)
+    free(err[i]);
   free(err);
 
 
 }
 
-
-
-
-
 int main(){
-  srand(time(NULL));
+  //  srand(time(NULL));
+  srand(0);
   uint a[3]= {2, 2, 2};
   Net *n = tnn_init_net(3, a); 
 
   //Let's learn the copy function
-  printf("before training \n");
+  //printf("before training \n");
 
   double in[2] = {0, 0};
+  /*
   printf("0 0\n");  
   tnn_print_output_activation(n,in);
   
@@ -409,10 +461,15 @@ int main(){
   in[0] = 1;
   printf("1 1\n");
   tnn_print_output_activation(n,in);
-
+  */
   double label[2] = {0, 0};
   in[0]=0; in[1]=0;
-  tnn_backprop(n, in, label);
+
+  tnn_print_output_activation(n,in);
+
+  tnn_backprop(n, in, label, .1);
+  
+
   tnn_print_output_activation(n,in);
   
   tnn_destroy_net(n);
