@@ -366,7 +366,9 @@ void tnn_generate_error(Net *n, double *labels, double **err){
       for(j=0; j<n->layers[i+1]; j++){ //Nodes of layer i
 	uint k;
 	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
-	  err[i][j] = n->connections[i][j][k] * err[i][j];
+	  err[i][j] = n->connections[i][j][k] * err[i+1][k];
+	  //	  printf("err[%u][%u] = %f\n",i+1,j,err[i+1][k]);
+	  //	  getchar();
 	}
       }
     }
@@ -385,7 +387,8 @@ void tnn_update_biases(Net *n, double **err, double lrate){
     uint j;
     for(j=0;j<n->layers[i+1];j++){ //loop over current layer neurons
       n->biases[i][j] -= lrate * err[i][j];
-      printf("%f\n",err[i][j]);
+      
+      //      printf("%f\n",err[i][j]);
     }
   }
 }
