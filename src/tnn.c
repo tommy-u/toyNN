@@ -451,56 +451,42 @@ int main(){
   double label[1];
 
   tnn_print_net(n);
-  
-  in[0]=0;in[1]=0; label[0]=0;
-  printf("\n0\n0\n");
-  tnn_print_output_activation(n,in);
 
-  in[0]=1;in[1]=0; label[0]=1;
-  printf("\n1\n0\n");
-  tnn_print_output_activation(n,in);
-
-  in[0]=0;in[1]=1; label[0]=1;
-  printf("\n0\n1\n");
-  tnn_print_output_activation(n,in);
-
-  in[0]=1;in[1]=1; label[0]=0;
-  printf("\n1\n1\n");
-  tnn_print_output_activation(n,in);
-
-  printf("\nTRAIN\n");
+  /* XOR fn before training. */
   uint i;
-  for(i=0;i<100000;i++){
-    in[0]=0;in[1]=0; label[0]=0;
-    tnn_backprop(n, in, label, .001);
-
-    in[0]=1;in[1]=0; label[0]=1;
-    tnn_backprop(n, in, label, .001);
-
-    in[0]=0;in[1]=1; label[0]=0;
-    tnn_backprop(n, in, label, .001);
-
-    in[0]=1;in[1]=1; label[0]=0;
-    tnn_backprop(n, in, label, .001);
+  for(i=0;i<2;i++){
+    uint j;
+    for(j=0;j<2;j++){
+      in[0]=i;in[1]=j; label[0]=i^j;
+      printf("%u xor %u = %u",i,j,i^j);
+      tnn_print_output_activation(n,in);
+    }
   }
 
+  printf("\nTRAIN\n");
+  
+  for(i=0;i<100000;i++){
+    
+    for(i=0;i<2;i++){
+      uint j;
+      for(j=0;j<2;j++){
+	in[0]=i;in[1]=j; label[0]=i^j;
+	tnn_backprop(n, in, label, .001);
+      }
+    }
+  }
+  
   printf("\nTEST\n");
 
-  in[0]=0;in[1]=0; label[0]=0;
-  printf("\n0\n0\n");
-  tnn_print_output_activation(n,in);
+  for(i=0;i<2;i++){
+    uint j;
+    for(j=0;j<2;j++){
+      in[0]=i;in[1]=j; label[0]=i^j;
+      printf("%u xor %u = %u",i,j,i^j);
+      tnn_print_output_activation(n,in);
+    }
+  }
 
-  in[0]=1;in[1]=0; label[0]=1;
-  printf("\n1\n0\n");
-  tnn_print_output_activation(n,in);
-
-  in[0]=0;in[1]=1; label[0]=1;
-  printf("\n0\n1\n");
-  tnn_print_output_activation(n,in);
-
-  in[0]=1;in[1]=1; label[0]=0;
-  printf("\n1\n1\n");
-  tnn_print_output_activation(n,in);  
 
 /*
   in[0]=0;in[1]=0; label[0]=0;label[1]=0;
