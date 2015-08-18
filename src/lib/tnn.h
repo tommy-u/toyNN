@@ -380,7 +380,7 @@ void tnn_generate_error(Net *n, double *labels, double **err){
       for(j=0; j<n->layers[i+1]; j++){ //Nodes of layer i
 	uint k;
 	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
-	  err[i][j] = n->connections[i+1][j][k] * err[i+1][k];
+	  err[i][j] = n->connections[i+1][k][j] * err[i+1][k];
 	}
       }
     }
