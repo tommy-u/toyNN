@@ -55,8 +55,8 @@ typedef struct {
      */
     uint i;
     for (i = 0; i < n->layers[n->num_layers-1]; i++){
-            err[n->num_layers-2][i] = n->output[i] - labels[i]; //change this to y-a? 
-      //      err[n->num_layers-2][i] = labels[i] - n->output[i]; //change this to y-a? 
+      err[n->num_layers-2][i] = n->output[i] - labels[i]; //change this to y-a? 
+      //err[n->num_layers-2][i] = labels[i] - n->output[i];
     }
    }
 
@@ -215,7 +215,7 @@ void tnn_feedforward(Net *n, double *input, uint train){
      k iterates over the input.  
      Train is a flag specifying if the pre_activations should
      be recorded. */
-     double *previous, *current;
+     double *previous, *current=NULL;
      previous = input;
 
      uint i;
@@ -370,7 +370,7 @@ void tnn_generate_error(Net *n, double *labels, double **err){
 	for(k=0; k<n->layers[i+2]; k++){ //Nodes of layer i+1
 	  //	  printf("err[%u][%u] = conn[%u][%u][%u] * err[%u][%u]\n",i,j,i,j,k,i+1,k);
 	  //printf(" = %f * %f\n",n->connections[i][j][k],err[i+1][k]);
-	  err[i][j] = n->connections[i][j][k] * err[i+1][k];
+	  err[i][j] = n->connections[i+1][j][k] * err[i+1][k];
 	}
       }
     }
@@ -440,13 +440,14 @@ void tnn_backprop(Net *n, double *in, double *labels, double lrate){
 }
 
 int main(){
+  //    srand(time(NULL));
   srand(5);
-  //  uint a[3]= {2, 3, 1};
+  uint a[3]= { 1, 1, 1};
   //Net *n = tnn_init_net(2, a); 
   
-  
-  uint a[2]= {1, 1};
-  Net *n = tnn_init_net(2, a); 
+  //uint a[2]= {1, 1};
+  Net *n = tnn_init_net(3, a); 
+  tnn_print_net(n);
 
   //Let's learn the copy function
   double in[1];
@@ -463,19 +464,21 @@ int main(){
 
   uint i;
 
-  for(i=0;i<1000000;i++){
-    in[0]=1; label[0]=1;
-    tnn_backprop(n, in, label, .1); 
+  double lrate = .1;
+  for(i=0;i<1;i++){
+
+    in[0]=0; label[0]=1;
+    tnn_backprop(n, in, label, lrate); 
     
-    in[0]=0; label[0]=0;
-    tnn_backprop(n, in, label, .1); 
+    //    in[0]=1; label[0]=0;
+    //tnn_backprop(n, in, label, lrate); 
   
   }
 
-  in[0]=1;
+  in[0]=0;
   tnn_print_output_activation(n,in);
 
-  in[0]=0;
+  in[0]=1;
   tnn_print_output_activation(n,in);
 
   tnn_print_net(n);
