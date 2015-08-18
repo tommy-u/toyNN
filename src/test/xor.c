@@ -1,3 +1,4 @@
+#include "tnn.h"
 int main(){
   //    srand(time(NULL));
   srand(5);
@@ -9,8 +10,8 @@ int main(){
   tnn_print_net(n);
 
   //Let's learn the copy function
-  double in[1];
-  double label[1];
+  //  double in[1];
+  //double label[1];
 
 
   /* XOR fn before training. */
