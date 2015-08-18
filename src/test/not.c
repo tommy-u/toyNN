@@ -33,7 +33,6 @@ int main(){
   tnn_print_output_activation(n,in);
 
   tnn_print_net(n);
-
   tnn_destroy_net(n);
   printf("exiting gracefully \n");
   return 0;
