@@ -2,7 +2,7 @@
 
 int main(){
   srand(time(NULL));
-  uint a[3]= { 1, 5, 2};
+  uint a[3]= { 2, 5, 2};
   Net *n = tnn_init_net(3, a); 
   //  tnn_print_net(n);
 
