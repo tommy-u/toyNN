@@ -407,7 +407,7 @@ void tnn_update_connections(Net *n, double **err, double *in, double lrate){
 	if(i==0)
 	  n->connections[i][j][k] -= lrate * err[i][j] * in[i]; 
 	else
-	  n->connections[i][j][k] -= lrate * err[i][j] * tnn_sigmoid( n->pre_activations[i][j] );
+	  n->connections[i][j][k] -= lrate * err[i][j] * tnn_sigmoid( n->pre_activations[i-1][j] );
       } 
     }
   }
@@ -467,7 +467,7 @@ int main(){
   double lrate = .1;
   for(i=0;i<1;i++){
 
-    in[0]=0; label[0]=1;
+    in[0]=1; label[0]=0;
     tnn_backprop(n, in, label, lrate); 
     
     //    in[0]=1; label[0]=0;
