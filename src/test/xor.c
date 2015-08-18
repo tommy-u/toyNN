@@ -1,18 +1,13 @@
 #include "tnn.h"
 int main(){
-  //    srand(time(NULL));
+
   srand(5);
   uint a[3]= { 1, 1, 1};
-  //Net *n = tnn_init_net(2, a); 
-  
-  //uint a[2]= {1, 1};
-  Net *n = tnn_init_net(3, a); 
+  Net *n = tnn_init_net(2, a); 
   tnn_print_net(n);
 
-  //Let's learn the copy function
   //  double in[1];
-  //double label[1];
-
+  //  double label[1];
 
   /* XOR fn before training. */
   /*
