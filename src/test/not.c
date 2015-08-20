@@ -17,8 +17,8 @@ int main(){
   printf("\nTRAIN\n\n");
   uint i;
 
-  double lrate = .1;
-  for(i=0;i<10000;i++){
+  double lrate = .01;
+  for(i=0;i<100;i++){
     in[0]=0; in[1]=0;
     label[0]=1; label[1]=1;
     tnn_backprop(n, in, label, lrate); 

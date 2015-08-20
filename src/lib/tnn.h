@@ -414,9 +414,9 @@ void tnn_update_connections(Net *n, double **err, double *in, double lrate){
       for(k=0;k<n->layers[i];k++){ //current layer neurons
 	/* Consider building input vector into pre_activations */
 	if(i==0)
-	  n->connections[i][j][k] -= lrate * err[i][j] * in[i]; 
+	  n->connections[i][j][k] -= lrate * err[i][j] * in[k]; 
 	else
-	  n->connections[i][j][k] -= lrate * err[i][j] * tnn_sigmoid( n->pre_activations[i-1][j] );
+	  n->connections[i][j][k] -= lrate * err[i][j] * tnn_sigmoid( n->pre_activations[i-1][k] );
       } 
     }
   }
