@@ -20,8 +20,8 @@ int main(){
   }
   printf("\nTRAIN\n");
   
-  double lrate = .01;
-  for(i=0;i<100000;i++){
+  double lrate = 20;
+  for(i=0;i<35;i++){
     uint j;
     for(j=0;j<2;j++){ //only running 1 time
       uint k;
