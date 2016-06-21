@@ -1,1 +1,1 @@
-A small NN for research purposes. 
+A small NN.
